@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
@@ -18,7 +19,7 @@ double leave_one_out_cross_validation(
 }
 
 bool load_data(const string& filename, vector<vector<double>>& data_out) {
-    ifstream infile(filename);
+    ifstream infile("Datasets/"+filename);
     if (!infile.is_open()) {
         cerr << "Error: Cannot open file '" << filename << "'\n";
         return false;
@@ -45,9 +46,7 @@ string format_feature_set(const vector<int>& feats) {
     oss << "{";
     for (size_t i = 0; i < feats.size(); ++i) {
         oss << feats[i];
-        if (i + 1 < feats.size()) {
-            oss << ",";
-        }
+        if (i + 1 < feats.size()) oss << ",";
     }
     oss << "}";
     return oss.str();
@@ -64,7 +63,7 @@ void run_forward_selection(const vector<vector<double>>& data) {
     double full_accuracy = leave_one_out_cross_validation(data, full_set);
     cout<<fixed<<setprecision(1);
     cout<<"\nRunning nearest neighbor with all "<<num_features<<" features, using \"leave-one-out\" evaluation, I get an accuracy of "<<full_accuracy<<"%\n";
-    cout<<"\nBeginning search.\n";
+    cout << "\nBeginning search.\n";
 
     vector<int> current_set;
     vector<int> best_overall_set = full_set;
@@ -81,7 +80,7 @@ void run_forward_selection(const vector<vector<double>>& data) {
                 sort(candidate_set.begin(), candidate_set.end());
 
                 double acc = leave_one_out_cross_validation(data, candidate_set);
-                cout<<"Using feature(s) "<<format_feature_set(candidate_set)<<" accuracy is "<<acc<<"%"<<endl;
+                cout<<"Using feature(s) "<<format_feature_set(candidate_set)<<" accuracy is "<<acc<<"%\n";
 
                 if (acc > best_this_level_accuracy) {
                     best_this_level_accuracy = acc;
@@ -90,19 +89,17 @@ void run_forward_selection(const vector<vector<double>>& data) {
             }
         }
 
-        cout << "Feature set " << format_feature_set(best_this_level_set)<< " was the best, accuracy is " << best_this_level_accuracy << "%\n";
+        cout<<"Feature set "<<format_feature_set(best_this_level_set)<<" was the best, accuracy is "<<best_this_level_accuracy<<"%\n";
 
         if (best_this_level_accuracy < best_overall_accuracy) {
-            cout << "Warning, accuracy has decreased! Continuing search in case of local maxima\n";
+            cout<<"Warning, accuracy has decreased! Continuing search in case of local maxima\n";
         } else {
             best_overall_accuracy = best_this_level_accuracy;
             best_overall_set = best_this_level_set;
         }
-
         current_set = best_this_level_set;
     }
-
-    cout<<"\nFinished search!! The best feature subset is "<<format_feature_set(best_overall_set)<<", which has an accuracy of "<<best_overall_accuracy<<"%"<<endl;
+    cout<<"\nFinished search!! The best feature subset is "<<format_feature_set(best_overall_set)<<", which has an accuracy of "<<best_overall_accuracy<<"%\n";
 }
 
 void run_backward_elimination(const vector<vector<double>>& data) {
@@ -116,9 +113,8 @@ void run_backward_elimination(const vector<vector<double>>& data) {
 
     double full_accuracy = leave_one_out_cross_validation(data, current_set);
     cout<<fixed<<setprecision(1);
-    cout<<"\nRunning nearest neighbor with all "<<num_features<<" features, using \"leave-one-out\" evaluation, I get an accuracy of "<<full_accuracy<<"%"<<endl;
-
-    cout << "\nBeginning search.\n";
+    cout<<"\nRunning nearest neighbor with all "<<num_features<<" features, using \"leave-one-out\" evaluation, I get an accuracy of "<<full_accuracy<<"%\n";
+    cout<<"\nBeginning search.\n";
 
     vector<int> best_overall_set = current_set;
     double best_overall_accuracy = full_accuracy;
@@ -126,6 +122,7 @@ void run_backward_elimination(const vector<vector<double>>& data) {
     for (int level = 1; level <= num_features; ++level) {
         double best_this_level_accuracy = 0.0;
         vector<int> best_this_level_set;
+
         for (size_t idx = 0; idx < current_set.size(); ++idx) {
             int feat = current_set[idx];
             vector<int> candidate_set;
@@ -136,71 +133,58 @@ void run_backward_elimination(const vector<vector<double>>& data) {
                 }
             }
             sort(candidate_set.begin(), candidate_set.end());
-
             double acc = leave_one_out_cross_validation(data, candidate_set);
-            cout << "Using feature(s) " << format_feature_set(candidate_set)
-                 << " accuracy is " << acc << "%\n";
-
+            cout<<"Using feature(s) "<<format_feature_set(candidate_set)<<" accuracy is "<<acc<<"%\n";
             if (acc > best_this_level_accuracy) {
                 best_this_level_accuracy = acc;
                 best_this_level_set = candidate_set;
             }
         }
-
-        // Report the best set found at this level
-        cout << "Feature set " << format_feature_set(best_this_level_set)
-             << " was the best, accuracy is " << best_this_level_accuracy << "%\n";
-
-        // Check if accuracy dropped relative to best_overall_accuracy
+        cout<<"Feature set "<<format_feature_set(best_this_level_set)<<" was the best, accuracy is "<<best_this_level_accuracy<<"%\n";
         if (best_this_level_accuracy < best_overall_accuracy) {
-            cout << "Warning, accuracy has decreased! Continuing search in case of local maxima\n";
+            cout<<"(Warning, accuracy has decreased! Continuing search in case of local maxima\n)";
         } else {
             best_overall_accuracy = best_this_level_accuracy;
             best_overall_set = best_this_level_set;
         }
-
         current_set = best_this_level_set;
     }
-
-    cout << "\nFinished search!! The best feature subset is "
-         << format_feature_set(best_overall_set)
-         << ", which has an accuracy of " << best_overall_accuracy << "%\n";
+    cout<<"\nFinished search!! The best feature subset is "<<format_feature_set(best_overall_set)<<", which has an accuracy of "<<best_overall_accuracy<<"%\n";
 }
 
 int main() {
     srand(static_cast<unsigned int>(time(nullptr)));
 
-    cout << "Welcome to Bertie Woosters Feature Selection Algorithm\n";
-    cout << "Type in the name of the file to test: ";
+    cout<<"Welcome to Bertie Woosters Feature Selection Algorithm\n";
+    cout<<"Type in the name of the file to test: ";
     string filename;
     getline(cin, filename);
 
     vector<vector<double>> data;
-    if (!load_data("Datasets/"+filename, data)) {
+    if (!load_data(filename, data)) {
         return 1;
     }
     if (data.empty()) {
-        cerr << "Error: Loaded data is empty.\n";
+        cerr<<"Error: Loaded data is empty.\n";
         return 1;
     }
 
     int num_instances = static_cast<int>(data.size());
     int num_features = static_cast<int>(data[0].size()) - 1;
 
-    cout << "\nThis dataset has "<<num_features<<" features (Not including the class attribute), with "<<num_instances<<" instances\n";
-
-    cout << "\nType the number of the algorithm you want to run"<<endl<<endl<<"1) Forward Selection"<<endl<<"2) Backward Elimination"<<endl<<endl;
+    cout<<"\nThis dataset has "<<num_features<<" features (Not including the class attribute), with "<<num_instances<<" instances\n";
+    cout<<"\nType the number of the algorithm you want to run\n\n"<<"1) Forward Selection\n"<<"2) Backward Elimination\n\n";
 
     int choice = 0;
     cin>>choice;
-    cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');  // consume rest of line
 
     if (choice == 1) {
         run_forward_selection(data);
     } else if (choice == 2) {
         run_backward_elimination(data);
     } else {
-        cout << "Invalid choice. Exiting.\n";
+        cout<<"Invalid choice. Exiting.\n";
     }
     return 0;
 }
