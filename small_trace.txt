@@ -1,0 +1,33 @@
+Feature set {9,11,23,32,43,44} was the best, accuracy is 80.1%
+Using feature(s) {11,23,32,43,44} accuracy is 78.1%
+Using feature(s) {9,23,32,43,44} accuracy is 80.8%
+Using feature(s) {9,11,32,43,44} accuracy is 71.0%
+Using feature(s) {9,11,23,43,44} accuracy is 79.2%
+Using feature(s) {9,11,23,32,44} accuracy is 78.6%
+Using feature(s) {9,11,23,32,43} accuracy is 81.0%
+Feature set {9,11,23,32,43} was the best, accuracy is 81.0%
+Using feature(s) {11,23,32,43} accuracy is 80.9%
+Using feature(s) {9,23,32,43} accuracy is 78.8%
+Using feature(s) {9,11,32,43} accuracy is 70.8%
+Using feature(s) {9,11,23,43} accuracy is 83.5%
+Using feature(s) {9,11,23,32} accuracy is 80.7%
+Feature set {9,11,23,43} was the best, accuracy is 83.5%
+Using feature(s) {11,23,43} accuracy is 83.8%
+Using feature(s) {9,23,43} accuracy is 82.9%
+Using feature(s) {9,11,43} accuracy is 70.1%
+Using feature(s) {9,11,23} accuracy is 84.8%
+Feature set {9,11,23} was the best, accuracy is 84.8%
+Using feature(s) {11,23} accuracy is 82.2%
+Using feature(s) {9,23} accuracy is 84.5%
+Using feature(s) {9,11} accuracy is 71.4%
+Feature set {9,23} was the best, accuracy is 84.5%
+(Warning, accuracy has decreased! Continuing search in case of local maxima
+)Using feature(s) {23} accuracy is 84.0%
+Using feature(s) {9} accuracy is 68.0%
+Feature set {23} was the best, accuracy is 84.0%
+(Warning, accuracy has decreased! Continuing search in case of local maxima
+)Using feature(s) {} accuracy is 19.1%
+Feature set {} was the best, accuracy is 19.1%
+(Warning, accuracy has decreased! Continuing search in case of local maxima
+)
+Finished search!! The best feature subset is {9,11,23}, which has an accuracy of 84.8%
