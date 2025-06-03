@@ -11,11 +11,37 @@
 
 using namespace std;
 
-double leave_one_out_cross_validation(
-    const vector<vector<double>>& data,
-    const vector<int>& feature_set
-) {
-    return (static_cast<double>(rand()) / RAND_MAX) * 100.0;
+double leave_one_out_cross_validation(const vector<vector<double>>& data, const vector<int>& feature_set) {
+    int n = static_cast<int>(data.size());
+    int correct_count = 0;
+
+    for (int i = 0; i < n; ++i) {
+        double true_label = data[i][0];
+        double best_squared_dist = numeric_limits<double>::infinity();
+        double nearest_label = -1.0;
+
+        for (int k = 0; k < n; ++k) {
+            if (k == i) 
+                continue;
+
+            double sq_dist = 0.0;
+            for (int feat : feature_set) {
+                double di = data[i][feat];
+                double dk = data[k][feat];
+                double diff = di - dk;
+                sq_dist += diff * diff;
+            }
+
+            if (sq_dist < best_squared_dist) {
+                best_squared_dist = sq_dist;
+                nearest_label = data[k][0];
+            }
+        }
+        if (nearest_label == true_label)
+            ++correct_count;
+    }
+    double accuracy_fraction = static_cast<double>(correct_count) / n;
+    return accuracy_fraction * 100.0;
 }
 
 bool load_data(const string& filename, vector<vector<double>>& data_out) {
