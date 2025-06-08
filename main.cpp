@@ -8,8 +8,11 @@
 #include <ctime>
 #include <iomanip>
 #include <limits>
+#include <map>
+#include <chrono>
 
 using namespace std;
+using Clock = chrono::high_resolution_clock;
 
 double leave_one_out_cross_validation(const vector<vector<double>>& data, const vector<int>& feature_set) {
     int n = static_cast<int>(data.size());
@@ -18,7 +21,7 @@ double leave_one_out_cross_validation(const vector<vector<double>>& data, const 
     for (int i = 0; i < n; ++i) {
         double true_label = data[i][0];
         double best_squared_dist = numeric_limits<double>::infinity();
-        double nearest_label = -1.0;
+        double nearest_label = std::numeric_limits<double>::quiet_NaN();
 
         for (int k = 0; k < n; ++k) {
             if (k == i) 
@@ -115,7 +118,7 @@ void run_forward_selection(const vector<vector<double>>& data) {
             }
         }
 
-        cout<<"Feature set "<<format_feature_set(best_this_level_set)<<" was the best, accuracy is "<<best_this_level_accuracy<<"%\n";
+        cout<<"Feature set "<<format_feature_set(best_this_level_set)<<" gave an accuracy of: "<<best_this_level_accuracy<<"%\n";
 
         if (best_this_level_accuracy < best_overall_accuracy) {
             cout<<"Warning, accuracy has decreased! Continuing search in case of local maxima\n";
@@ -139,7 +142,7 @@ void run_backward_elimination(const vector<vector<double>>& data) {
 
     double full_accuracy = leave_one_out_cross_validation(data, current_set);
     cout<<fixed<<setprecision(1);
-    cout<<"\nRunning nearest neighbor with all "<<num_features<<" features, using \"leave-one-out\" evaluation, I get an accuracy of "<<full_accuracy<<"%\n";
+    cout<<"\nRunning nearest neighbor with all "<<num_features<<" features, I get an accuracy of "<<full_accuracy<<"%\n";
     cout<<"\nBeginning search.\n";
 
     vector<int> best_overall_set = current_set;
@@ -166,9 +169,9 @@ void run_backward_elimination(const vector<vector<double>>& data) {
                 best_this_level_set = candidate_set;
             }
         }
-        cout<<"Feature set "<<format_feature_set(best_this_level_set)<<" was the best, accuracy is "<<best_this_level_accuracy<<"%\n";
+        cout<<"Feature set "<<format_feature_set(best_this_level_set)<<" gave an accuracy of "<<best_this_level_accuracy<<"%\n";
         if (best_this_level_accuracy < best_overall_accuracy) {
-            cout<<"(Warning, accuracy has decreased! Continuing search in case of local maxima\n)";
+            cout<<"(Warning, accuracy has decreased! Continuing search in case of local maxima)\n";
         } else {
             best_overall_accuracy = best_this_level_accuracy;
             best_overall_set = best_this_level_set;
@@ -176,6 +179,16 @@ void run_backward_elimination(const vector<vector<double>>& data) {
         current_set = best_this_level_set;
     }
     cout<<"\nFinished search!! The best feature subset is "<<format_feature_set(best_overall_set)<<", which has an accuracy of "<<best_overall_accuracy<<"%\n";
+}
+
+double default_rate(const vector<vector<double>>& data) {
+    map<double,int> freq;
+    for (auto& row : data) 
+        freq[row[0]]++;
+    int max_count = 0;
+    for (auto& p : freq) 
+        max_count = max(max_count, p.second);
+    return (static_cast<double>(max_count) / data.size()) * 100.0;
 }
 
 int main() {
@@ -203,8 +216,14 @@ int main() {
 
     int choice = 0;
     cin>>choice;
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');  // consume rest of line
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
+    double base = default_rate(data);
+    cout << "Default rate using no features is: " << fixed << setprecision(1) << base << "%" << endl;
+    
+    auto t_start = Clock::now();
+    srand(static_cast<unsigned int>(time(nullptr)));
+    
     if (choice == 1) {
         run_forward_selection(data);
     } else if (choice == 2) {
@@ -212,5 +231,8 @@ int main() {
     } else {
         cout<<"Invalid choice. Exiting.\n";
     }
+    auto t_end = Clock::now();
+    auto duration_ms = chrono::duration_cast<chrono::milliseconds>(t_end - t_start).count();
+    cout<<"\nTotal execution time: "<<duration_ms<<" ms\n";
     return 0;
 }
