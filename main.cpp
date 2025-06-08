@@ -14,9 +14,21 @@
 using namespace std;
 using Clock = chrono::high_resolution_clock;
 
+double default_rate(const vector<vector<double>>& data) {
+    map<double,int> freq;
+    for (auto& row : data) 
+        freq[row[0]]++;
+    int max_count = 0;
+    for (auto& p : freq) 
+        max_count = max(max_count, p.second);
+    return (static_cast<double>(max_count) / data.size()) * 100.0;
+}
+
 double leave_one_out_cross_validation(const vector<vector<double>>& data, const vector<int>& feature_set) {
     int n = static_cast<int>(data.size());
     int correct_count = 0;
+    if (feature_set.empty())
+        return default_rate(data);
 
     for (int i = 0; i < n; ++i) {
         double true_label = data[i][0];
@@ -181,16 +193,6 @@ void run_backward_elimination(const vector<vector<double>>& data) {
     cout<<"\nFinished search!! The best feature subset is "<<format_feature_set(best_overall_set)<<", which has an accuracy of "<<best_overall_accuracy<<"%\n";
 }
 
-double default_rate(const vector<vector<double>>& data) {
-    map<double,int> freq;
-    for (auto& row : data) 
-        freq[row[0]]++;
-    int max_count = 0;
-    for (auto& p : freq) 
-        max_count = max(max_count, p.second);
-    return (static_cast<double>(max_count) / data.size()) * 100.0;
-}
-
 int main() {
     srand(static_cast<unsigned int>(time(nullptr)));
 
@@ -223,7 +225,7 @@ int main() {
     
     auto t_start = Clock::now();
     srand(static_cast<unsigned int>(time(nullptr)));
-    
+
     if (choice == 1) {
         run_forward_selection(data);
     } else if (choice == 2) {
